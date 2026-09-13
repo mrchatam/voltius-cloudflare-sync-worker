@@ -11,9 +11,19 @@ Tracking: [VoltiusApp/voltius#267](https://github.com/VoltiusApp/voltius/issues/
 
 ## Deploy (pick one)
 
-### Option 1 — Deploy to Cloudflare button (easiest)
+### Option 1 — Deploy from Voltius plugin Settings (recommended)
 
-Click, sign in to Cloudflare, accept the R2 binding, deploy. Takes about a minute.
+Install the [Cloudflare Sync](https://github.com/mrchatam/voltius-plugin-cloudflare-sync) marketplace plugin, open **Settings → Cloudflare Sync**, and use the **Deploy Worker** section:
+
+1. Paste your Cloudflare **Account ID** and an **API token** (see permissions below).
+2. Optionally change Worker name / R2 bucket (defaults: `voltius-cloudflare-sync` / `voltius-vault-sync`).
+3. Click **Generate sync token**, then **Deploy Worker**.
+4. The plugin creates the R2 bucket if needed, uploads this Worker bundle, sets `SYNC_TOKEN`, fills the Worker URL, and toasts success.
+5. Add a **separate** encryption passphrase → **Create vault** or **Link existing**.
+
+The plugin fetches the published `worker.mjs` release asset from this repo (no Wrangler required on your machine).
+
+### Option 2 — Deploy to Cloudflare button
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/mrchatam/voltius-cloudflare-sync-worker)
 
@@ -22,9 +32,9 @@ Click, sign in to Cloudflare, accept the R2 binding, deploy. Takes about a minut
 1. Open the new Worker in the Cloudflare dashboard → **Settings** → **Variables and Secrets**.
 2. Add secret `SYNC_TOKEN` = a long random string (password manager is fine).
 3. Copy the Worker URL (e.g. `https://voltius-cloudflare-sync.<account>.workers.dev`).
-4. In Voltius → install **Cloudflare Sync** ([marketplace plugin](https://github.com/mrchatam/voltius-plugin-cloudflare-sync)) → paste URL + token + a **separate** encryption passphrase → **Create vault** or **Link existing**.
+4. In Voltius → **Cloudflare Sync** plugin → paste URL + token + a **separate** encryption passphrase → **Create vault** or **Link existing**.
 
-### Option 2 — Wrangler CLI (three commands)
+### Option 3 — Wrangler CLI
 
 Requires Node 20+ and a Cloudflare account (`npx wrangler login` once).
 
@@ -47,13 +57,28 @@ npm run deploy:easy
 
 Then paste the printed Worker URL into the Voltius plugin settings.
 
-### Option 3 — Local dev
+### Option 4 — Local dev
 
 ```bash
 cp .dev.vars.example .dev.vars   # set SYNC_TOKEN=
 npm install
 npm run dev                      # http://127.0.0.1:8787
 ```
+
+---
+
+## API token permissions (in-app deploy)
+
+Create a [Cloudflare API token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/) with at least:
+
+| Permission | Level | Why |
+|------------|-------|-----|
+| **Account → Workers Scripts** | Edit | Upload / update the Worker script |
+| **Account → Workers R2 Storage** | Edit | Create the R2 bucket + bind `VAULT_BUCKET` |
+| **Account → Account Settings** | Read | Resolve your `*.workers.dev` subdomain |
+
+Account resources: include the account you will deploy into.  
+Do **not** use a Global API Key. The Voltius plugin keeps the token in memory only (not persisted).
 
 ---
 
@@ -86,6 +111,20 @@ Quick check:
 curl -sS "$WORKER_URL/health"
 curl -sS -H "Authorization: Bearer $SYNC_TOKEN" "$WORKER_URL/v1/manifest"
 ```
+
+---
+
+## Build the deployable artifact
+
+Used by the Voltius plugin (and CI) to produce `dist/worker.mjs`:
+
+```bash
+npm install
+npm run build:artifact   # wrangler deploy --dry-run --outdir=dist → dist/worker.mjs
+```
+
+Release assets attach `worker.mjs` for in-app deploy
+(`…/releases/latest/download/worker.mjs`).
 
 ---
 

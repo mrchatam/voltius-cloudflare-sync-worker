@@ -1,6 +1,6 @@
 {
   "name": "voltius-cloudflare-sync-worker",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "BYO Cloudflare Worker + R2 opaque vault sync backend for Voltius",
   "license": "MIT",
@@ -13,7 +13,9 @@
     "test:watch": "vitest",
     "setup:buckets": "wrangler r2 bucket create voltius-vault-sync ; wrangler r2 bucket create voltius-vault-sync-preview",
     "secret:token": "wrangler secret put SYNC_TOKEN",
-    "deploy:easy": "npm run setup:buckets && npm run deploy && npm run secret:token"
+    "deploy:easy": "npm run setup:buckets && npm run deploy && npm run secret:token",
+    "build:artifact": "wrangler deploy --dry-run --outdir=dist && node scripts/prepare-artifact.mjs",
+    "build": "npm run build:artifact"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.8.71",
