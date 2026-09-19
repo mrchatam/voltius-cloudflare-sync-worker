@@ -1,6 +1,6 @@
 {
   "name": "voltius-cloudflare-sync-worker",
-  "version": "0.2.0",
+  "version": "0.2.3",
   "private": true,
   "description": "BYO Cloudflare Worker + R2 opaque vault sync backend for Voltius",
   "license": "MIT",

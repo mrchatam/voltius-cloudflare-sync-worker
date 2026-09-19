@@ -58,11 +58,6 @@ export async function putDeviceBlob(
     throw new ManifestConflictError("If-Match does not match current manifest ETag");
   }
 
-  const key = deviceObjectKey(deviceId);
-  const put = await bucket.put(key, body.content, {
-    httpMetadata: { contentType: "text/plain; charset=utf-8" },
-  });
-
   const entry: ManifestDevice = { id: deviceId, label: body.label, pushedAt: body.pushedAt };
   const idx = current.manifest.devices.findIndex((d) => d.id === deviceId);
   const devices =
@@ -70,8 +65,12 @@ export async function putDeviceBlob(
       ? current.manifest.devices.map((d, i) => (i === idx ? entry : d))
       : [...current.manifest.devices, entry];
   const next = { ...current.manifest, devices };
-  const written = await writeManifest(bucket, next, { ifMatch: current.etag });
-  void written;
+  // Conditional manifest write first, so a lost race leaves the previous blob untouched.
+  await writeManifest(bucket, next, { ifMatch: current.etag });
+
+  const put = await bucket.put(deviceObjectKey(deviceId), body.content, {
+    httpMetadata: { contentType: "text/plain; charset=utf-8" },
+  });
 
   return { etag: put.httpEtag || put.etag, manifest: next };
 }

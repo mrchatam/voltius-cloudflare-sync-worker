@@ -21,7 +21,7 @@ Install the [Cloudflare Sync](https://github.com/mrchatam/voltius-plugin-cloudfl
 4. The plugin creates the R2 bucket if needed, uploads this Worker bundle, sets `SYNC_TOKEN`, fills the Worker URL, and toasts success.
 5. Add a **separate** encryption passphrase → **Create vault** or **Link existing**.
 
-The plugin fetches the published `worker.mjs` release asset from this repo (no Wrangler required on your machine).
+**In-app Deploy Worker** (plugin Settings) uploads the Worker script **bundled into the plugin** at build time (reviewed / hash-pinned). This repository remains the source for **Copy Deploy-to-Cloudflare**, Wrangler CLI deploys, and the published `worker.mjs` release asset.
 
 ### Option 2 — Deploy to Cloudflare button
 

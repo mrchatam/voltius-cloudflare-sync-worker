@@ -144,8 +144,8 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         404,
       );
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      return jsonError(500, "internal", message);
+      console.error(err);
+      return jsonError(500, "internal", "Internal error");
     }
   }
 
